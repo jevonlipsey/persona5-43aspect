@@ -51,3 +51,5 @@ CLAUDE.local.md
 analysis/
 *.cpk
 *.usm
+.venv/
+build/
