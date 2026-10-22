@@ -3,7 +3,8 @@
 Native 4:3 for *Persona 5 Royal* (Atlus and SEGA, Steam appid 1687950), part of the nova-43aspect collection.
 
 ## Status
-- **Planned.** Scaffold only, nothing verified yet. Engine facts below are first impressions from the install folder; confirm each one before relying on it.
+- **In progress.** Exe byte patches (tools/p5r_patch.py) written from disassembly of the Windows P5R.exe; device verification pending. Web patcher (web/app, pure JS) works under node parity test.
+- Engine facts: no DRM on P5R.exe (plain x64 in .xcode). Render area fit (1a19a0), UI scale (1a4390/1a1a80) and camera projection (1b1c30) are the aspect-sensitive spots; see tools/p5r_patch.py for the exact patches.
 
 ## Engine facts (unverified)
 - `P5R.exe` + `steam_api64.dll` + `CPK/` archives (~40 GB, on the SD card). Atlus' in-house engine (the GFD engine family).
