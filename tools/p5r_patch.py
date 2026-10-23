@@ -52,7 +52,8 @@ F_1_1080 = 0x199d728  # float 1/1080
 
 
 def ui_uniform():
-    """2D scale: y scale = x scale (width/1920) instead of height/1080."""
+    """2D scale: y scale = x scale (width/1920) instead of height/1080.
+    not in t5: it squashes the 1080-tall canvas to 720px and leaves the bottom band."""
     out = []
     # init (1a4390): xmm0 = (float)r13 (height) -> (float)r12 (width); * 1/1080 -> * 1/1920
     out.append(('ui init cvt', 0x1a4514, bytes.fromhex('f3490f2ac5'), bytes.fromhex('f3490f2ac4')))
@@ -85,7 +86,58 @@ def cam43():
             ('cam site', site, bytes.fromhex('f30f114374'), jmp(site, CAVE))]
 
 
-SETS = {'fit43': fit43, 'ui_uniform': ui_uniform, 'cam43': cam43}
+def cinemascope():
+    """Remove hardcoded 16:9 CinemaScope letterbox bars in event/dialogue scenes."""
+    # NOP out the two call 141590580 quad-drawing instructions in evt_letter_box render (0xe0c044, 0xe0c21f)
+    return [
+        ('cinemascope call1', 0xe0c044, bytes.fromhex('e837457800'), bytes.fromhex('9090909090')),
+        ('cinemascope call2', 0xe0c21f, bytes.fromhex('e85c437800'), bytes.fromhex('9090909090')),
+    ]
+
+
+def cam_aspect_defaults():
+    """Retarget default camera builds and aspect checks from 16:9 to 4:3."""
+    out = []
+    # 0x13ca9e9, 0x13cac47, 0x1450d65: movss xmm1/2, [16/9] -> [4/3]
+    out.append(('cam default 1', 0x13ca9e9 + 4, retarget(0x13ca9e9, 8, 0x199ea4c), retarget(0x13ca9e9, 8, F_4_3)))
+    out.append(('cam default 2', 0x13cac47 + 4, retarget(0x13cac47, 8, 0x199ea4c), retarget(0x13cac47, 8, F_4_3)))
+    out.append(('cam default 3', 0x1450d65 + 4, retarget(0x1450d65, 8, 0x199ea4c), retarget(0x1450d65, 8, F_4_3)))
+    # 0x1da29d: comiss xmm0, [16/9] -> [4/3]
+    out.append(('aspect cmp 1da29d', 0x1da29d + 3, retarget(0x1da29d, 7, 0x199ea4c), retarget(0x1da29d, 7, F_4_3)))
+    return out
+
+
+F_1440 = 0x18baaa0   # float 1440.0
+F_720 = 0x187cc74    # float 720.0
+F_960 = 0x19a0fd8    # float 960.0
+
+
+def hud_43():
+    """Re-anchor battle party panel, command wheel center, calendar/weather, and dialogue to 4:3.
+    only valid with a 1440x1080 canvas (x scale width/1440); t5 keeps width/1920, so this is not used."""
+    out = []
+    # 1. Battle party panel width: retarget 1920.0 -> 1440.0
+    for site in (0xb9ee03, 0xb9fdfd, 0xba03ce, 0xba05ab):
+        out.append((f'btl panel w {site:x}', site + 5, retarget(site, 9, 0x19a1730), retarget(site, 9, F_1440)))
+    # 2. Battle command wheel center: 960.0 -> 720.0 (center of 1440)
+    out.append(('btl wheel center', 0xb8b2b9 + 4, retarget(0xb8b2b9, 8, F_960), retarget(0xb8b2b9, 8, F_720)))
+    # 3. Calendar / weather screen center: 960.0 -> 720.0
+    for site in (0xb748a5, 0xb74915):
+        out.append((f'calendar center {site:x}', site + 4, retarget(site, 8, F_960), retarget(site, 8, F_720)))
+    # 4. Field HUD & Dialogue box width: 1920.0 -> 1440.0
+    for site in (0xc245ff, 0xc2b650, 0xc2b6d0, 0xc2c387, 0xcf4e77):
+        out.append((f'field/dlg w {site:x}', site + 4, retarget(site, 8, 0x19a1730), retarget(site, 8, F_1440)))
+    return out
+
+
+SETS = {
+    'fit43': fit43,
+    'ui_uniform': ui_uniform,
+    'cam43': cam43,
+    'cinemascope': cinemascope,
+    'cam_aspect_defaults': cam_aspect_defaults,
+    'hud_43': hud_43,
+}
 
 
 def build(names):

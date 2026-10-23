@@ -4,8 +4,8 @@ globalThis.P5R_PATCHES = {
  "sha256": "5d9e18c383700302d029c947ddf8c811ba6afa47e60ec1afa0554d452bdc0cbf",
  "sets": [
   "fit43",
-  "ui_uniform",
-  "cam43"
+  "cam43",
+  "cinemascope"
  ],
  "patches": [
   {
@@ -39,34 +39,22 @@ globalThis.P5R_PATCHES = {
    "new": "bdce7f01"
   },
   {
-   "name": "ui resize cvt",
-   "offset": 1708304,
-   "old": "f3480f2ac0",
-   "new": "f3490f2ac5"
-  },
-  {
-   "name": "ui resize mul",
-   "offset": 1708321,
-   "old": "03bc7f01",
-   "new": "dfbb7f01"
-  },
-  {
-   "name": "ui init cvt",
-   "offset": 1719060,
-   "old": "f3490f2ac5",
-   "new": "f3490f2ac4"
-  },
-  {
-   "name": "ui init mul",
-   "offset": 1719085,
-   "old": "f7917f01",
-   "new": "d3917f01"
-  },
-  {
    "name": "cam site",
    "offset": 1774382,
    "old": "f30f114374",
    "new": "e94dd3e317"
+  },
+  {
+   "name": "cinemascope call1",
+   "offset": 14726724,
+   "old": "e837457800",
+   "new": "9090909090"
+  },
+  {
+   "name": "cinemascope call2",
+   "offset": 14727199,
+   "old": "e85c437800",
+   "new": "9090909090"
   },
   {
    "name": "cam cave",
