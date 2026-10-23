@@ -5,7 +5,7 @@ globalThis.P5R_PATCHES = {
  "sets": [
   "fit43",
   "cam43",
-  "cinemascope"
+  "film43"
  ],
  "patches": [
   {
@@ -45,16 +45,16 @@ globalThis.P5R_PATCHES = {
    "new": "e94dd3e317"
   },
   {
-   "name": "cinemascope call1",
-   "offset": 14726724,
-   "old": "e837457800",
-   "new": "9090909090"
+   "name": "film h1",
+   "offset": 14726626,
+   "old": "b24bb900",
+   "new": "f24fb900"
   },
   {
-   "name": "cinemascope call2",
-   "offset": 14727199,
-   "old": "e85c437800",
-   "new": "9090909090"
+   "name": "film h2",
+   "offset": 14727120,
+   "old": "c449b900",
+   "new": "044eb900"
   },
   {
    "name": "cam cave",

@@ -7,9 +7,11 @@ on a 1280x960 render that is 1280x960 on screen: the 1920x1080 canvas fills
 the 4:3 display and nothing is left over.
 
 ui_uniform (t2-t4) rewrote the y scale to render_w/1920 instead, so the canvas
-was only 720px tall and anchored at the top. that is the 240px band at the
-bottom and the 16:9 frame line at y=720 seen in the t3 screenshots. t5 drops
-ui_uniform and keeps the engine's own fill behaviour.
+was only 720px tall and anchored at the top. the event film overlay also draws
+a 1280x720 tint quad in screen space, so its bottom 240px is left untinted.
+both edges land on y=720: that is the band and the 16:9 frame line seen in the
+t3 screenshots. t5 drops ui_uniform and retargets the film quad height to 960
+(film43), so the ui fills and the overlay covers the whole screen.
 
 usage: python3 -I tools/ui_harness.py [exe] [--report]
 """
@@ -31,6 +33,7 @@ F_1920 = 0x19a1730
 F_960 = 0x19a0fd8
 F_1440 = 0x18baaa0
 F_720 = 0x187cc74
+F_720_FILM = 0x19a0b98
 F_075 = 0x199e3f8
 F_4_3 = 0x199e8e0
 
@@ -120,7 +123,7 @@ def check_constants(pe):
     print('\n=== shared constants ===')
     for addr, want in ((F_1_1920, 1 / 1920), (F_1_1080, 1 / 1080), (F_1920, 1920.0),
                        (F_960, 960.0), (F_1440, 1440.0), (F_720, 720.0),
-                       (F_075, 0.75), (F_4_3, 4 / 3)):
+                       (F_720_FILM, 720.0), (F_075, 0.75), (F_4_3, 4 / 3)):
         got = pe.f32(addr)
         assert abs(got - want) < 1e-6, f'{addr:#x}: {got} != {want}'
     print('  1/1920, 1/1080, 1920, 960, 1440, 720, 0.75, 4/3 all OK')
@@ -174,12 +177,24 @@ def check_cam43(pe):
     print('  cave, 0.75 mul and jmp OK')
 
 
-def check_cinemascope(pe):
-    print('\n=== cinemascope ===')
+def check_film43(pe):
+    print('\n=== film43 ===')
+    ok = True
+    for site in (0xe0bfde, 0xe0c1cc):
+        got = pe.riprel_target(site, 8, 4)
+        if got != F_960:
+            print(f'  FAIL {site:#x}: height target {got:#x}, expected {F_960:#x} (bottom 240px untinted)')
+            ok = False
+        else:
+            print(f'  {site:#x} height -> {got:#x} ({pe.f32(got):g}) OK')
     for site in (0xe0c044, 0xe0c21f):
         b = pe.bytes(site, 5)
-        assert b == b'\x90' * 5, f'{site:#x}: {b.hex()}'
-        print(f'  {site:#x} NOP OK')
+        if b[0] != 0xe8:
+            print(f'  FAIL {site:#x}: draw call is {b.hex()} (cinemascope NOP?)')
+            ok = False
+        else:
+            print(f'  {site:#x} draw call intact OK')
+    return ok
 
 
 def check_hud43(pe):
@@ -209,15 +224,17 @@ def verify(path, report=False):
     check_constants(pe)
     check_fit43(pe)
     check_cam43(pe)
-    check_cinemascope(pe)
+    film = check_film43(pe)
     hud = check_hud43(pe)
     band = bottom_band(mode)
     print(f'\n  ui mode {mode}, bottom band {band:.0f}px')
-    if mode != 'fill' or hud:
+    if mode != 'fill' or hud or not film:
         if mode != 'fill':
             print('  FAIL: ui_uniform is present; the 1080-tall canvas is squashed to 720px')
         if hud:
             print('  FAIL: hud_43 is present; it assumes a 1440x1080 canvas that the scale never had')
+        if not film:
+            print('  FAIL: film43 is missing; the event overlay leaves the bottom 240px untinted')
         if not report:
             return 1
     else:

@@ -3,9 +3,9 @@
 Native 4:3 for *Persona 5 Royal* (Atlus and SEGA, Steam appid 1687950), part of the nova-43aspect collection.
 
 ## Status
-- **In progress.** Camera solved (`fit43` + `cam43`). Current build: `build/P5R.t5.exe` = `fit43,cam43,cinemascope` (sha256 `6906b463e5b1e69ac46cbd1c4599e290be5593bc8dd7ce893418b54ca8d91a6e`). It drops `ui_uniform`, which was forcing y scale = W/1920 and squashing the 1080-tall UI into 720px: that was the 240px bottom band and the 16:9 frame line at y=720 in the screenshots. Tradeoff: the UI is stretched 1.333x vertically (0.889 y vs 0.667 x), so circles become ellipses. Not device-verified yet (device offline).
-- Engine facts: no DRM on P5R.exe (plain x64 in .xcode). Render area fit (1a19a0), UI scale (1a4390/1a1a80) and camera projection (1b1c30) are the aspect-sensitive spots; see tools/p5r_patch.py for the exact patches.
+- **In progress.** Camera solved (`fit43` + `cam43`). Current build: `build/P5R.t5.exe` = `fit43,cam43,film43` (sha256 `7ab25e5eee2c919c618b00681dd86fd7286b080b668ec85cb23b000336623427`). It drops `ui_uniform`, which was forcing y scale = W/1920 and squashing the 1080-tall UI into 720px, and extends the event film overlay's 1280x720 tint quads to 960 (`film43`), which was leaving the bottom 240px untinted. Together those were the 240px band and the 16:9 frame line at y=720 in the screenshots. Tradeoff: the UI is stretched 1.333x vertically (0.889 y vs 0.667 x), so circles become ellipses. Not device-verified yet (device offline).
 - The 2D context maps canvas coordinates straight to screen pixels: `screen = canvas * (W/1920, H/1080)`. The engine's own y scale fills a 4:3 render. A native (undistorted) 4:3 UI needs a 1440x1080 canvas (x scale W/1440, uniform 0.889) plus re-anchoring; see the `hud_43` note in CLAUDE.local.md.
+- Engine facts: no DRM on P5R.exe (plain x64 in .xcode). Render area fit (1a19a0), UI scale (1a4390/1a1a80) and camera projection (1b1c30) are the aspect-sensitive spots; see tools/p5r_patch.py for the exact patches.
 
 ## Engine facts (unverified)
 - `P5R.exe` + `steam_api64.dll` + `CPK/` archives (~40 GB, on the SD card). Atlus' in-house engine (the GFD engine family).

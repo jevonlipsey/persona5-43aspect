@@ -87,11 +87,26 @@ def cam43():
 
 
 def cinemascope():
-    """Remove hardcoded 16:9 CinemaScope letterbox bars in event/dialogue scenes."""
-    # NOP out the two call 141590580 quad-drawing instructions in evt_letter_box render (0xe0c044, 0xe0c21f)
+    """t4 experiment: NOP the event film overlay's two 1280x720 tint quads.
+    kept for reference; film43 extends the quads to 960 instead of removing them."""
+    # NOP out the two call 141590580 quad-drawing instructions in the film overlay (0xe0c044, 0xe0c21f)
     return [
         ('cinemascope call1', 0xe0c044, bytes.fromhex('e837457800'), bytes.fromhex('9090909090')),
         ('cinemascope call2', 0xe0c21f, bytes.fromhex('e85c437800'), bytes.fromhex('9090909090')),
+    ]
+
+
+F_720_FILM = 0x19a0b98   # float 720.0 loaded by the event film overlay
+
+
+def film43():
+    """The event film overlay (tint + flicker) draws 1280x720 quads in screen space.
+    on a 960-tall render the bottom 240px stays untinted: that is the bright band.
+    retarget the two height loads to 960 so the overlay covers the whole screen and
+    the film look survives (cinemascope's NOPs removed the quads entirely)."""
+    return [
+        ('film h1', 0xe0bfde + 4, retarget(0xe0bfde, 8, F_720_FILM), retarget(0xe0bfde, 8, F_960)),
+        ('film h2', 0xe0c1cc + 4, retarget(0xe0c1cc, 8, F_720_FILM), retarget(0xe0c1cc, 8, F_960)),
     ]
 
 
@@ -135,6 +150,7 @@ SETS = {
     'ui_uniform': ui_uniform,
     'cam43': cam43,
     'cinemascope': cinemascope,
+    'film43': film43,
     'cam_aspect_defaults': cam_aspect_defaults,
     'hud_43': hud_43,
 }
